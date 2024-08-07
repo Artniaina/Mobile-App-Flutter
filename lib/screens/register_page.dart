@@ -1,10 +1,7 @@
-
-
-import 'dart:convert';  // Importer pour utiliser jsonEncode
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../helpers/database_helper.dart';
 import '../models/user.dart';
-import 'welcome_page.dart';
+import 'login_page.dart';
 
 class RegisterPage extends StatefulWidget {
   @override
@@ -36,12 +33,11 @@ class _RegisterPageState extends State<RegisterPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  // Ajout de l'image ronde en haut de la page
                   ClipOval(
                     child: Image.asset(
                       'assets/images/logo.jpg',
-                      height: 150, // Ajustez la hauteur selon vos besoins
-                      width: 150,  // La largeur doit être égale à la hauteur pour obtenir un cercle
+                      height: 150,
+                      width: 150,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -119,13 +115,15 @@ class _RegisterPageState extends State<RegisterPage> {
                                 TextFormField(
                                   controller: _confirmPasswordController,
                                   decoration: InputDecoration(
-                                    labelText: 'Confirmez mot de passe',
+                                    labelText: 'Confirmez le mot de passe',
                                     border: OutlineInputBorder(),
                                     prefixIcon: Icon(Icons.lock),
                                   ),
                                   obscureText: true,
                                   validator: (value) {
-                                    if (value != _passwordController.text) {
+                                    if (value!.isEmpty) {
+                                      return 'Veuillez confirmer votre mot de passe';
+                                    } else if (value != _passwordController.text) {
                                       return 'Les mots de passe ne correspondent pas';
                                     }
                                     return null;
@@ -134,7 +132,7 @@ class _RegisterPageState extends State<RegisterPage> {
                                 SizedBox(height: 20),
                                 ElevatedButton(
                                   onPressed: _register,
-                                  child: Text('S inscrire'),
+                                  child: Text('Inscription'),
                                   style: ElevatedButton.styleFrom(
                                     minimumSize: Size(double.infinity, 48),
                                     shape: RoundedRectangleBorder(
@@ -165,11 +163,8 @@ class _RegisterPageState extends State<RegisterPage> {
       String password = _passwordController.text;
 
       User user = User(name: name, email: email, password: password);
-      SharedPreferences prefs = await SharedPreferences.getInstance();
 
-      // Convertir le User en Map et ensuite en chaîne JSON
-      String userJson = jsonEncode(user.toMap());
-      await prefs.setString('user', userJson);  // Utiliser await pour s'assurer que l'opération est terminée
+      await DatabaseHelper().insertUser(user);
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Inscription réussie !')),
@@ -177,7 +172,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       Navigator.pushAndRemoveUntil(
         context,
-        MaterialPageRoute(builder: (context) => WelcomePage()),
+        MaterialPageRoute(builder: (context) => LoginPage()),
         (Route<dynamic> route) => false,
       );
     }

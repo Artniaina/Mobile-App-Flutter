@@ -1,8 +1,5 @@
-
-
-import 'dart:convert'; 
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../helpers/database_helper.dart';
 import '../models/user.dart';
 import 'welcome_page.dart';
 import 'register_page.dart';
@@ -35,12 +32,11 @@ class _LoginPageState extends State<LoginPage> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  // Ajout de l'image ronde en haut de la page
                   ClipOval(
                     child: Image.asset(
                       'assets/images/logo.jpg',
-                      height: 150, // Ajustez la hauteur selon vos besoins
-                      width: 150,  // La largeur doit être égale à la hauteur pour obtenir un cercle
+                      height: 150,
+                      width: 150,
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -146,37 +142,21 @@ class _LoginPageState extends State<LoginPage> {
       String email = _emailController.text;
       String password = _passwordController.text;
 
-      SharedPreferences prefs = await SharedPreferences.getInstance();
-      String? userString = prefs.getString('user');
+      User? user = await DatabaseHelper().getUser(email, password);
 
-      if (userString != null) {
-        try {
-          Map<String, dynamic> userMap = jsonDecode(userString);  // Décode la chaîne JSON en Map
-          User user = User.fromMap(userMap);  // Crée un objet User à partir du Map
+      if (user != null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Connexion réussie !')),
+        );
 
-          if (user.email == email && user.password == password) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Connexion réussie !')),
-            );
-
-            Navigator.pushAndRemoveUntil(
-              context,
-              MaterialPageRoute(builder: (context) => WelcomePage()),
-              (Route<dynamic> route) => false,
-            );
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text('Email ou mot de passe invalide')),
-            );
-          }
-        } catch (e) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Erreur lors de la connexion : $e')),
-          );
-        }
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (context) => WelcomePage()),
+          (Route<dynamic> route) => false,
+        );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Utilisateur non trouvé')),
+          SnackBar(content: Text('Email ou mot de passe invalide')),
         );
       }
     }
